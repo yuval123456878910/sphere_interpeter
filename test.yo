@@ -1,0 +1,12 @@
+
+if ("2" == 2)
+output("h1i")
+
+elif (2 == 5)
+output("hi")
+
+else:
+output("1")
+endif
+
+
