@@ -3,24 +3,25 @@
 # string, float and int operators support (for string only +)
 # adding veruble support # achived getting verbs
 # fix verubel not liking number in the veurbes
+# keywords: output, getConsole, if, elif, else, turnText, turnInt
+# creating veruble_config (setting values)
+# added some keywords functionality
+# returns some value to keywords
+
 
 # progres:
-# creating veruble_config (setting values)
-# keywords: output
-
+# returns some value to keywords
 # next steps:
+# add keywords functionality
 # adding more keywords
-# adding keywords functionality
-# return value to keywords
+
 
 # steps tutorial
 # add keywords functionality: get all elements with step count of keyword + 10
 
-# may cusse problomes lines:
-# 61 - add number to verubles
+
 
 # tokenizer (tokenize)
-
 def tokenizer(input_calculator: str):
     operators = ["+","-","*","/","=","^"]
     seperators = ["(",")",",", ":",";"]
@@ -126,7 +127,7 @@ def tokenizer(input_calculator: str):
 # parser (set up steps)
 def parser(token_line: list):
     # correct token line
-    keywords = ["output", "getConsole", "if", "elif", "else", "while","turnInt","turnText"]
+    keywords = ["output", "getConsole", "if", "elif", "else", "while","turnInt","turnText","endif"]
     for i in range(len(token_line)):
         char = token_line[i]
         if char[1] in keywords:
@@ -134,17 +135,18 @@ def parser(token_line: list):
 
 
     output = []
-    operators = ['+', "-", "*", "/","^"]
+    operators = ['+', "-", "*", "/","^","=="]
     seperators = ["(",")"]
     step1 = ['+', "-"]
     step2 = ["*", "/"]
     step3 = ["^"]
-    # step4 is none existantes
+    step4 = ["=="]
     step5 = keywords
     sepAdd = 0 # add to make the enything in seperators first
 
     for i in range(len(token_line)):
         charecter = token_line[i]  
+        
         
         if charecter[1] in ["(",")"]:
             if charecter[1] == "(":
@@ -160,10 +162,13 @@ def parser(token_line: list):
                 output.append((2+sepAdd,charecter))
             elif charecter[1] in step3:
                 output.append((3+sepAdd,charecter))     
+            elif charecter[1] in step4:
+                output.append((4+sepAdd,charecter))  
         else:
             if charecter[1] in step5:
                 output.append((5+sepAdd,charecter))  
             else:
+                
                 output.append((0+sepAdd,charecter))    
     
     return output
@@ -197,14 +202,19 @@ def roand_number_0(num):
         num -= 1
     return num
 
-
+def equals(item1, item2):
+    #print(item1[1][1] == item2[1][1] and item1[1][0] == item2[1][0])
+    return f"{item1[1][1] == item2[1][1] and item1[1][0] == item2[1][0]}".lower()
+         
 # finalise: do all calculations
-def finalise(step_line: list, storege: dict):
+def finalise(step_line: list, storege: dict, if_states: list):
+    
     
     t = 0
-    keywords = ["output", "getConsole", "if", "elif", "else", "while","turnInt","turnText"]
+    keywords = ["output", "getConsole", "if", "elif", "else", "while","turnInt","turnText","endif"]
     seperators = ["(",")",",",":",";"]
-    operators = ["+", "-", "*", "/","^"]
+    operators = ["+", "-", "*", "/","^","=="]
+    
     Continue = True
     output = []
     t = 0
@@ -226,7 +236,7 @@ def finalise(step_line: list, storege: dict):
         elif char1[0] == "IDENTIFIER":
 
             if char1[1] in storege:
-                step_line.insert(t, (storege.get(char1[1])[0],(storege.get(char1[1])[1][0],storege.get(char1[1])[1][1])))
+                step_line.insert(t, (step_line[t][0],(storege.get(char1[1])[1][0],storege.get(char1[1])[1][1])))
                 step_line.pop(t + 1)
             else:
                 print("Cant find veruble!", char1[1])
@@ -270,6 +280,7 @@ def finalise(step_line: list, storege: dict):
         if step_line[location][1][0] == "KEYWORD":
             keyword = step_line[location][1][1]
             if keyword == "output":
+                
                 minimum_order = None
                 print_text = ""
                 
@@ -315,7 +326,7 @@ def finalise(step_line: list, storege: dict):
                     step_line.pop(location+1)
                 step_line[location] = (step_line[location][0], "BOOL","none")
             
-            if keyword == "getConsole":
+            elif keyword == "getConsole":
                 minimum_order = None
                 print_text = ""
                 
@@ -365,7 +376,7 @@ def finalise(step_line: list, storege: dict):
                     
                 step_line[location] = (step_line[location][0], ("STRING",f"{Resolt}"))
             
-            if keyword == "turnInt":
+            elif keyword == "turnInt":
                 minimum = 0
                 number = step_line[location][0] 
                 for i in range(number):
@@ -407,7 +418,7 @@ def finalise(step_line: list, storege: dict):
                     else: 
                         step_line.insert(location, (i[0],("NUMBER", str(float(i[1][1])) )))
 
-            if keyword == "turnText":
+            elif keyword == "turnText":
                 minimum = 0
                 number = step_line[location][0] 
                 for i in range(number):
@@ -436,7 +447,27 @@ def finalise(step_line: list, storege: dict):
                 
                 for i in TextParts:   
                     step_line.insert(location, (i[0],("STRING", str(int(i[1][1])) )))
-                
+
+            elif keyword == "if":
+                if step_line[location+1][1][1] == "true" and step_line[location+1][1][0] == "BOOL": if_states.append('true')
+                else: if_states.append('false')  
+                step_line.pop(location+1)
+                step_line.pop(location)
+            
+            elif keyword == "elif":
+                if step_line[location+1][1][1] == "true" and step_line[location+1][1][0] == "BOOL": if_states[-1] = 'true'
+                else: if_states[-1] = 'false'  
+                step_line.pop(location+1)
+                step_line.pop(location)
+
+            elif keyword == "else":
+                if if_states[-1] == "false": if_states[-1] = 'true'
+                step_line.pop(location)
+
+
+            elif keyword == "endif":
+                if_states.pop(-1)
+                step_line.pop(location)
         # Error Adding String
         elif step_line[location][1][1] == "+":
             num1 = step_line[location-1][1][1]
@@ -497,8 +528,16 @@ def finalise(step_line: list, storege: dict):
             step_line.pop(location+1)
             step_line.pop(location-1)
         
+        elif step_line[location][1][1] == '==':
+            item1 = step_line[location-1]
+            item2 = step_line[location+1]
+            result = equals(item1, item2)
+            step_line[location] = (step_line[location-1][0], ('BOOL', str(result)))
+            step_line.pop(location+1)
+            step_line.pop(location-1)
+            
+
         found = False
-        
         
 
         for i in step_line:
@@ -518,10 +557,11 @@ def finalise(step_line: list, storege: dict):
         if typeTest(element[1][1], float):
             if int(float(element[1][1])) == float(element[1][1]):
                 output[i] = (element[0] , ("NUMBER",int(float(element[1][1]))) )
-    return output     
+    return output , if_states
 
 def veruble_config(finelise_code: list, storage: dict):
     for i in range(len(finelise_code)):
+
         charecter = finelise_code[i][1]
         step = finelise_code[i][0]
         
@@ -529,6 +569,7 @@ def veruble_config(finelise_code: list, storage: dict):
         if i < len(finelise_code):
             # check code 
             if charecter[0] == "IDENTIFIER":
+                
                 set_value = finelise_code[i+2:len(finelise_code)]
 
                 # error cheking
