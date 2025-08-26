@@ -1,0 +1,8 @@
+a = turnInt(getConsole("number: "))
+
+if (a == (5))
+output("The password is correct\n")
+else:
+output("The password is incorrect\n")
+endif
+
